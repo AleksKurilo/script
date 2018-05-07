@@ -9,7 +9,7 @@ public interface FileWorker {
 
     void createFile(String fileName);
 
-    void writeToFile(ConcurrentHashMap<String, Integer> map, String fileName);
+    void writeToFile(HashMap<String, Integer> map, String fileName);
 
     Integer getVolume(String source);
 }

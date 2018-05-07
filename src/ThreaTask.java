@@ -1,33 +1,33 @@
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 
 
-public class FileThreadWorker implements Callable<Void> {
+public class ThreaTask implements Callable<HashMap<String, Integer>> {
 
     private final String fileName;
     private final FileWorker fileWorker;
-    private final ConcurrentHashMap<String, Integer> map;
+    private final HashMap<String, Integer> map;
 
-    FileThreadWorker(String fileName, FileWorker fileWorker, ConcurrentHashMap<String, Integer> map) {
+    ThreaTask(String fileName, FileWorker fileWorker) {
         this.fileName = fileName;
         this.fileWorker = fileWorker;
-        this.map = map;
+        this.map = new HashMap<String, Integer>();
     }
 
     @Override
-    public Void call() throws Exception {
+    public HashMap<String, Integer> call() throws Exception {
         System.out.println("Created " + Thread.currentThread().getName());
         Path source = FileSystems.getDefault().getPath(Binding.PATH_NEW_DIR + fileName);
         List<String> lines = fileWorker.getListStringFromFile(source);
         setData(lines, map, fileName);
-        return null;
+        return this.map;
     }
 
-    private void setData(List<String> lines, ConcurrentHashMap<String, Integer> mapExist, String fileSoursName) {
+    private void setData(List<String> lines, HashMap<String, Integer> map, String fileSoursName) {
         synchronized (this) {
             System.out.println("Set data to file" + fileSoursName);
             String regrex = fileSoursName.replace("-", " ").replace(".csv", "");
@@ -40,10 +40,10 @@ public class FileThreadWorker implements Callable<Void> {
                 }
                 String s = array[4].replace("\" ", "").replace("\"", "");
                 Integer volume = fileWorker.getVolume(s);
-                if (mapExist.containsKey(key)) {
-                    mapExist.put(key, mapExist.get(key) + volume);
+                if (map.containsKey(key)) {
+                    map.put(key, map.get(key) + volume);
                 } else
-                    mapExist.put(key, volume);
+                    map.put(key, volume);
             }
         }
     }

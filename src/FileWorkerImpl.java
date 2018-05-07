@@ -33,7 +33,7 @@ public class FileWorkerImpl implements FileWorker {
     }
 
     @Override
-    public void writeToFile(ConcurrentHashMap<String, Integer> map, String fileName) {
+    public void writeToFile(HashMap<String, Integer> map, String fileName) {
         try (Writer writer = new FileWriter("data/" + Binding.FILE_NAME)) {
             int i = 0;
             for (Map.Entry<String, Integer> entry : map.entrySet()) {
@@ -45,7 +45,7 @@ public class FileWorkerImpl implements FileWorker {
                         .append(String.valueOf(i))
                         .append(System.getProperty("line.separator"));
             }
-            System.out.println("result: " + i);
+            System.out.println("Write result to file: " + i);
 
         } catch (IOException e) {
             e.printStackTrace();
