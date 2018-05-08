@@ -1,40 +1,49 @@
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 public class ThreadWorkerImpl implements ThreadWorker {
-    private final ExecutorService executorService;
     private final CompletionService completionService;
 
     ThreadWorkerImpl(CompletionService completionService) {
-        executorService = Executors.newFixedThreadPool(5);
         this.completionService = completionService;
     }
 
     @Override
-    public List<Callable<HashMap<String, Integer>>> createCallableList(List<String> filenames, FileWorker fileWorker) {
-        List<Callable<HashMap<String, Integer>>> callables = new LinkedList<>();
+    public List<Callable<Map<String, Integer>>> createCallableList(List<String> filenames, FileWorker fileWorker) {
+        List<Callable<Map<String, Integer>>> callables = new LinkedList<>();
         for (String fileNema : filenames) {
-            callables.add(new ThreaTask(fileNema, fileWorker));
+            callables.add(new FileReader(fileNema, fileWorker));
         }
         return callables;
     }
 
     @Override
-    public List<HashMap<String, Integer>> takeResults(List<Callable<HashMap<String, Integer>>> callables) {
-        List<HashMap<String, Integer>> results = new LinkedList<>();
+    public List<Map<String, Integer>> takeResults(List<Callable<Map<String, Integer>>> callables) {
+        List<Map<String, Integer>> results = new LinkedList<>();
         try {
             for (int i = 0; i < callables.size(); i++) {
-                Future future = completionService.take();
-                HashMap<String, Integer> resultFromTrhead = (HashMap<String, Integer>) future.get();
+                Future <Map<String, Integer>> future = completionService.take();
+                Map<String, Integer> resultFromTrhead = future.get(100, MILLISECONDS);
                 results.add(resultFromTrhead);
             }
-        } catch (InterruptedException | ExecutionException ex) {
+        } catch (InterruptedException | ExecutionException | TimeoutException ex ) {
             System.out.println("ERROR: " + ex.getMessage());
-        } finally {
-            executorService.shutdown();
         }
         return results;
+    }
+
+    @Override
+    public void stop(ExecutorService executorService) {
+        try {
+            executorService.shutdown();
+            executorService.awaitTermination(100, MILLISECONDS);
+        } catch (InterruptedException e) {
+            System.out.println("ERROR: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

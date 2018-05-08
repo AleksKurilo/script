@@ -2,14 +2,15 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        final HashMap<String, Integer> map = new HashMap<>();
-        final ExecutorService executorService = Executors.newFixedThreadPool(5);
+        final Map<String, Integer> map = new HashMap<>();
+        final ExecutorService executorService = Executors.newWorkStealingPool();
         final CompletionService completionService = new ExecutorCompletionService(executorService);
 
         final RenameFile renameFile = new RenameFileImpl(Binding.PATH_OLD_DIR, Binding.PATH_NEW_DIR);
@@ -25,12 +26,13 @@ public class Main {
             filenames.add(newName);
         }
 
-        List<Callable<HashMap<String, Integer>>> callables = threadWorker.createCallableList(filenames, fileWorker);
-        for (Callable<HashMap<String, Integer>> callable : callables) completionService.submit(callable);
-        List<HashMap<String, Integer>> results = threadWorker.takeResults(callables);
+        List<Callable<Map<String, Integer>>> callables = threadWorker.createCallableList(filenames, fileWorker);
+        for (Callable<Map<String, Integer>> callable : callables) completionService.submit(callable);
+        List<Map<String, Integer>> results = threadWorker.takeResults(callables);
+        threadWorker.stop(executorService);
 
 
-        for(HashMap<String, Integer> resultFromTrhead : results){
+        for(Map<String, Integer> resultFromTrhead : results){
             resultFromTrhead.forEach((k, v) -> map.merge(k, v, Integer::sum));
         }
 
