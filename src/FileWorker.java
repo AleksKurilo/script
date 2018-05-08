@@ -1,15 +1,11 @@
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+
 
 public interface FileWorker {
 
-    List<String> getListStringFromFile(Path source);
-
     void createFile(String fileName);
 
-    void writeToFile(ConcurrentHashMap<String, Integer> map, String fileName);
-
-    Integer getVolume(String source);
+    void writeToFile(Map<String, Integer> map, String fileName);
 }
